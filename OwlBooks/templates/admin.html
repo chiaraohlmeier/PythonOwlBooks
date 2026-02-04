@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Benutzerverwaltung (Admin)</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 2em; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background: #f0f0f0; }
+        .actions { white-space: nowrap; }
+        form.inline { display: inline; }
+        .success { color: green; }
+        .error { color: #c00; }
+    </style>
+</head>
+<body>
+    <h1>Benutzerverwaltung</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <p class="{{ category }}">{{ message }}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <h2>Benutzerliste</h2>
+    <table>
+        <tr>
+            <th>Benutzername</th>
+            <th>Aktionen</th>
+        </tr>
+        {% for username in userlist %}
+        <tr>
+            <td>{{ username }}</td>
+            <td class="actions">
+                {% if username != admin %}
+                <form class="inline" method="post" action="{{ url_for('admin_delete', username=username) }}">
+                    <button type="submit" onclick="return confirm('Benutzer wirklich löschen?')">Löschen</button>
+                </form>
+                <form class="inline" method="post" action="{{ url_for('admin_reset', username=username) }}">
+                    <button type="submit">Passwort zurücksetzen</button>
+                </form>
+                {% endif %}
+                {% if users[username].must_change_pw or users[username]['must_change_pw'] %}
+                    <span style="color: #c00;">(Passwort muss geändert werden)</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Neuen Benutzer anlegen</h2>
+    <form method="post" action="{{ url_for('admin_add') }}">
+        <label>Benutzername: <input type="text" name="username" required></label>
+        <label>Passwort: <input type="password" name="password" required></label>
+        <button type="submit">Hinzufügen</button>
+    </form>
+</body>
+</html>

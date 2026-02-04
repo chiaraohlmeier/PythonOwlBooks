@@ -1,0 +1,6 @@
+{
+    "Test": {
+        "password": "scrypt:32768:8:1$sTIJHVhhglTwxnHq$bfc4e574c10bba00e2e0760286d7e029bd01fd6bd32de7525f410eac481b4c043dd79869da0b292b9bddf344e7b80a8c4429e11ddf47b31d202137fed00d7b41",
+        "must_change_pw": false
+    }
+}

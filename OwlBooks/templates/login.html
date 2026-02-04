@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Login – Rechenregelsteuerung</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 1.1em;
+            background: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+        .login-container {
+            background: #fff;
+            max-width: 350px;
+            margin: 80px auto 0 auto;
+            padding: 2em 2.5em 2em 2.5em;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        h2 {
+            margin-top: 0;
+            margin-bottom: 1.2em;
+            font-size: 1.5em;
+            color: #333;
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.7em;
+            color: #222;
+        }
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        .password-wrapper input[type="password"],
+        .password-wrapper input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0.6em 2.5em 0.6em 0.6em;
+            margin-bottom: 1.2em;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            font-size: 1em;
+            display: block;
+        }
+        .password-wrapper .toggle-password {
+            position: absolute;
+            right: 0.8em;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+        .password-wrapper img {
+            width: 22px;
+            height: 22px;
+            vertical-align: middle;
+        }
+        input[type="text"], input[type="submit"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0.6em;
+            margin-bottom: 1.2em;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            font-size: 1em;
+            display: block;
+        }
+        input[type="submit"] {
+            background: #005fa3;
+            color: #fff;
+            border: none;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 0.5em;
+        }
+        input[type="submit"]:hover {
+            background: #004477;
+        }
+        .error {
+            color: #c00;
+            margin-bottom: 1em;
+            text-align: center;
+        }
+        .register-link {
+            text-align: center;
+            margin-top: 1em;
+        }
+        .success { 
+            color: green; 
+        }
+        .error { 
+            color: #c00; 
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!--Block zum anzeigen der flashed messages-->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <p class="{{ category }}">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% if session.must_change_pw %}
+            <h2>Neues Passwort setzen</h2>
+            <form method="post">
+                <label>Neues Passwort:
+                    <div class="password-wrapper">
+                        <input id="new_password1" name="new_password" type="password" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword('new_password1', 'eyeShowNP1', 'eyeHideNP1')" tabindex="-1" aria-label="Passwort anzeigen/ausblenden">
+                            <img id="eyeShowNP1" src="{{ url_for('static', filename='Icons/eye-password-show.svg') }}" alt="Passwort anzeigen">
+                            <img id="eyeHideNP1" src="{{ url_for('static', filename='Icons/eye-password-hide.svg') }}" alt="Passwort verbergen" style="display:none;">
+                        </button>
+                    </div>
+                </label>
+                <label>Neues Passwort wiederholen:
+                    <div class="password-wrapper">
+                        <input id="new_password2" name="new_password2" type="password" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword('new_password2', 'eyeShowNP2', 'eyeHideNP2')" tabindex="-1" aria-label="Passwort anzeigen/ausblenden">
+                            <img id="eyeShowNP2" src="{{ url_for('static', filename='Icons/eye-password-show.svg') }}" alt="Passwort anzeigen">
+                            <img id="eyeHideNP2" src="{{ url_for('static', filename='Icons/eye-password-hide.svg') }}" alt="Passwort verbergen" style="display:none;">
+                        </button>
+                    </div>
+                </label>
+                <input type="submit" value="Passwort ändern">
+            </form>
+            {% if error %}<div class="error">{{ error }}</div>{% endif %}
+        {% else %}
+            <h2>Login</h2>
+            <form method="post">
+                <label>Benutzername:
+                    <input name="username" type="text" autofocus required>
+                </label>
+                <label>Passwort:
+                    <div class="password-wrapper">
+                        <input id="password1" name="password" type="password" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword('password1', 'eyeShow1', 'eyeHide1')" tabindex="-1" aria-label="Passwort anzeigen/ausblenden">
+                            <img id="eyeShow1" src="{{ url_for('static', filename='Icons/eye-password-show.svg') }}" alt="Passwort anzeigen">
+                            <img id="eyeHide1" src="{{ url_for('static', filename='Icons/eye-password-hide.svg') }}" alt="Passwort verbergen" style="display:none;">
+                        </button>
+                    </div>
+                </label>
+                <input type="submit" value="Anmelden">
+            </form>
+            {% if error %}<div class="error">{{ error }}</div>{% endif %}
+            <div class="register-link">
+                Noch kein Account? <a href="{{ url_for('register') }}">Jetzt registrieren</a>
+            </div>
+        {% endif %}
+    </div>
+    <script src="{{ url_for('static', filename='js/password.js') }}"></script>
+</body>
+</html>

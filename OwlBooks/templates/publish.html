@@ -1,0 +1,64 @@
+<!-- Modal-Button auf der Startseite -->
+<button id="publishBtn" class="btn btn-primary">Veröffentlichen</button>
+
+<!-- Modal-Dialog -->
+<div id="publishModal" class="modal" style="display:none;">
+  <div class="modal-content" style="max-width:400px;margin:auto;padding:20px;border-radius:8px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+    <h2>Version veröffentlichen</h2>
+    <form id="publishForm">
+      <label for="ersteller">Ersteller:</label>
+      <input type="text" id="ersteller" name="ersteller" value="{{ session.get("user", "") }}" required><br><br>
+      <label for="pruefer">Prüfer:</label>
+      <input type="text" id="pruefer" name="pruefer" required><br><br>
+      <label for="freigabe_durch">Freigabe durch:</label>
+      <input type="text" id="freigabe_durch" name="freigabe_durch" required><br><br>
+      <label for="freigabedatum">Freigabedatum:</label>
+      <input type="date" id="freigabedatum" name="freigabedatum" required>
+      <button type="button" onclick="setToday()">Heute</button><br><br>
+      <script>
+        function setToday() {
+          // Aktuelles Datum im Format YYYY-MM-DD ermitteln
+          const today = new Date().toISOString().split('T')[0];
+          // Das Datum ins Eingabefeld einfügen
+          document.getElementById('freigabedatum').value = today;
+        }
+      </script>
+      <button type="submit" class="btn btn-success">Veröffentlichen</button>
+      <button type="button" id="closeModal" class="btn btn-secondary">Abbrechen</button>
+    </form>
+    <div id="publishMessage" style="margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- Modal-Styles und Script -->
+<style>
+.modal {
+  position: fixed; z-index: 9999; left: 0; top: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;
+}
+</style>
+<script>
+document.getElementById('publishBtn').onclick = function() {
+  document.getElementById('publishModal').style.display = 'flex';
+};
+document.getElementById('closeModal').onclick = function() {
+  document.getElementById('publishModal').style.display = 'none';
+};
+document.getElementById('publishForm').onsubmit = async function(e) {
+  e.preventDefault();
+  const data = {
+    ersteller: document.getElementById('ersteller').value,
+    pruefer: document.getElementById('pruefer').value,
+    freigabe_durch: document.getElementById('freigabe_durch').value,
+    freigabedatum: document.getElementById('freigabedatum').value
+  };
+  const res = await fetch('/publish', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  });
+  const msg = await res.json();
+  document.getElementById('publishMessage').innerText = msg.message || msg.error;
+  if (res.ok) setTimeout(() => { document.getElementById('publishModal').style.display = 'none'; }, 1500);
+};
+</script>

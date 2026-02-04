@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrieren – Rechenregelsteuerung</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f7f7f7; }
+        .register-container {
+            background: #fff;
+            max-width: 350px;
+            margin: 80px auto 0 auto;
+            padding: 2em 2.5em 2em 2.5em;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        h2 { text-align: center; }
+        label { display: block; margin-bottom: 0.7em; }
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        .password-wrapper input[type="password"],
+        .password-wrapper input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0.6em 2.5em 0.6em 0.6em;
+            margin-bottom: 1.2em;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            font-size: 1em;
+            display: block;
+        }
+        .password-wrapper .toggle-password {
+            position: absolute;
+            right: 0.8em;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+        .password-wrapper img {
+            width: 22px;
+            height: 22px;
+            vertical-align: middle;
+        }
+        input[type="text"], input[type="submit"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0.6em;
+            margin-bottom: 1.2em;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            font-size: 1em;
+            display: block;
+        }
+        input[type="submit"] {
+            background: #005fa3;
+            color: #fff;
+            border: none;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 0.5em;
+        }
+        input[type="submit"]:hover { background: #004477; }
+        .error { color: #c00; margin-bottom: 1em; text-align: center; }
+        .register-link { text-align: center; margin-top: 1em; }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <h2>Registrieren</h2>
+        <form method="post" onsubmit="return checkPasswords();">
+            <label>Benutzername:
+                <input name="username" type="text" required>
+            </label>
+            <label>Passwort:
+                <div class="password-wrapper">
+                    <input id="password1" name="password" type="password" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword('password1', 'eyeShow1', 'eyeHide1')" tabindex="-1" aria-label="Passwort anzeigen/ausblenden">
+                        <img id="eyeShow1" src="{{ url_for('static', filename='icons/eye-password-show.svg') }}" alt="Passwort anzeigen">
+                        <img id="eyeHide1" src="{{ url_for('static', filename='icons/eye-password-hide.svg') }}" alt="Passwort verbergen" style="display:none;">
+                    </button>
+                </div>
+            </label>
+            <label>Passwort wiederholen:
+                <div class="password-wrapper">
+                    <input id="password2" name="password2" type="password" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword('password2', 'eyeShow2', 'eyeHide2')" tabindex="-1" aria-label="Passwort anzeigen/ausblenden">
+                        <img id="eyeShow2" src="{{ url_for('static', filename='icons/eye-password-show.svg') }}" alt="Passwort anzeigen">
+                        <img id="eyeHide2" src="{{ url_for('static', filename='icons/eye-password-hide.svg') }}" alt="Passwort verbergen" style="display:none;">
+                    </button>
+                </div>
+            </label>
+            <input type="submit" value="Registrieren">
+        </form>
+        {% if error %}<div class="error">{{ error }}</div>{% endif %}
+        <div class="register-link">
+            <a href="{{ url_for('login') }}">Zurück zum Login</a>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/password.js') }}"></script>
+    <script>
+    function checkPasswords() {
+        var pw1 = document.getElementById('password1').value;
+        var pw2 = document.getElementById('password2').value;
+        if (pw1 !== pw2) {
+            alert("Die Passwörter stimmen nicht überein!");
+            return false;
+        }
+        return true;
+    }
+    </script>
+</body>
+</html>
