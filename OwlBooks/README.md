@@ -19,7 +19,7 @@
 - Erstellung von Mahnungen bei Überschreitung der Leihfrist
 - Berechnung optionaler Mahngebühren
 
-### 4. Finanzverwaltung
+### 4. Finanzverwaltung im Adminbereich
 - Erfassung von Einnahmen:
   - Mitgliedsbeiträge
   - Mahngebühren
@@ -34,7 +34,7 @@
   - bisheriger Ausleihen
 - Einsatz einfacher regelbasierter Empfehlungssysteme
 
-### 6. Statistiken und Auswertungen
+### 6. Statistiken und Auswertungen im Adminbereich
 - Analyse und Ausgabe von Statistiken, z. B.:
   - meist ausgeliehene Bücher
   - aktivste Nutzer
@@ -43,7 +43,6 @@
   - Anzahl der Mahnungen pro Nutzer
 
 ## Technische Umsetzung
-
 - Programmiersprache: Python 3
 - Weboberfläche mit Flask
 - Benutzerverwaltung mit Login/Logout über die Weboberfläche

@@ -3,8 +3,8 @@ import os
 from flask import render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash
 
-USERS_FILE = os.path.join(os.getcwd(), "src", "users.json")
-ADMIN_USER = "admin"  # Passe ggf. an
+USERS_FILE = os.path.join(os.path.dirname(__file__), "users.json")
+ADMIN_USER = "admin"  
 
 def load_users():
     with open(USERS_FILE, "r", encoding="utf-8") as f:

@@ -24,11 +24,55 @@
             letter-spacing: 2px;
             margin-top: 0.2em;
         }
+        .topbar {
+            width: 100%;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 8px 16px;
+            box-sizing: border-box;
+        }
+        .topbar a {
+            color: #005fa3;
+            text-decoration: none;
+            margin-left: 12px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
+    <div class="topbar">
+        {% if session.user %}
+            <div>Angemeldet als {{ session.user }}</div>
+            <a href="{{ url_for('logout') }}">Abmelden</a>
+        {% endif %}
+    </div>
     <div class="header">
         <h1>Aufgabe 5: OwlBooks – Die Bibliothek der weisen Eule</h1>
+    </div>
+    <div>
+        <p>Aktuell ausgeliehene Bücher:</p>
+        <ul>
+            <li>Der kleine Prinz</li>
+            <li>Harry Potter und der Stein der Weisen</li>
+        </ul>
+        <p>Rückgaben: die Bücher, die in den nächsten 3 Tagen zurückgegeben werden müssen</p>
+        <ul>
+            <li>Harry Potter und der Stein der Weisen (fällig in 2 Tagen)</li>
+        </ul>
+        <p>Mahnungen:</p>
+        <ul>
+            <li>Der kleine Prinz (überfällig seit 3 Tagen) - zu zahlender Betrag: 5,00 €</li>
+        </ul>
+        <p>Empfehlungen: auf Basis der meist ausgeliehenden Genres</p>
+        <ul>
+            <li>Die Schatzsuche<button onclick="alert('Funktion zum Anzeigen der Statistiken wird hier implementiert')">ausleihen</button></li>
+            <li>Die Geister von Hogwarts<button onclick="alert('Funktion zum Anzeigen der Statistiken wird hier implementiert')">ausleihen</button></li>
+        </ul>
+        <button onclick="alert('Funktion zum Ausleihen eines Buches wird hier implementiert')">Bücher suchen</button>
+        <p>eventuell API für Bücher-Suche einbauen(existiert bereits), mit Sortier-/Suchfunktion nach Genre, Autor, Titel, Button bei jedem Buch zum ausleihen mit Auswahl aus vorgegebenen Zeiträumen, wird direkt in der Benutzeroberfläche angezeigt</p>
+        <button onclick="alert('Funktion zum Anzeigen der Statistiken wird hier implementiert')">Statistiken anzeigen</button>
+        <p>Statistiken umfassen: Anzahl der ausgeliehenen Bücher, Anzahl der überfälligen Bücher, meist ausgeliehene Genres, Anzahl pünktlicher Rückgaben, Anzahl verspäteter Rückgaben</p>
     </div>
 </body>
 </html>

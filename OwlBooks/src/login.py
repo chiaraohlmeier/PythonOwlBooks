@@ -3,7 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import json
 
-USERS_FILE = os.path.join(os.getcwd(), "src", "users.json")
+USERS_FILE = os.path.join(os.path.dirname(__file__), "users.json")
 ADMIN_USER = "admin"
 ADMIN_PASSWORD = "admin_pass"
 
@@ -48,7 +48,7 @@ def register_login_routes(app):
                     save_users(users)
                     session.pop("must_change_pw", None)
                     flash("Passwort erfolgreich geändert.", "success")
-                    return redirect(url_for("home"))
+                    return redirect(url_for("main"))
             return render_template("login.html", error=error)
         # Normales Login
         if request.method == "POST":
@@ -57,7 +57,7 @@ def register_login_routes(app):
             if user == ADMIN_USER:
                 if pw == ADMIN_PASSWORD:
                     session["user"] = user
-                    return redirect(url_for("home"))
+                    return redirect(url_for("admin"))
                 else:
                     error = "Benutzername oder Passwort falsch!"
             elif user in users:
@@ -68,7 +68,7 @@ def register_login_routes(app):
                 elif check_password_hash(users[user]["password"], pw):
                     session["user"] = user
                     session.pop("must_change_pw", None)
-                    return redirect(url_for("home"))
+                    return redirect(url_for("main")) #####
                 else:
                     error = "Benutzername oder Passwort falsch!"
             else:

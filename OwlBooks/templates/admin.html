@@ -5,6 +5,8 @@
     <title>Benutzerverwaltung (Admin)</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 30px; }
+        .topbar { display:flex; justify-content:flex-end; gap:12px; margin-bottom: 12px; }
+        .topbar a { color:#005fa3; text-decoration:none; font-weight:600; }
         table { border-collapse: collapse; width: 100%; margin-bottom: 2em; }
         th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
         th { background: #f0f0f0; }
@@ -15,6 +17,12 @@
     </style>
 </head>
 <body>
+    <div class="topbar">
+        {% if session.user %}
+            <div>Angemeldet als {{ session.user }}</div>
+            <a href="{{ url_for('logout') }}">Abmelden</a>
+        {% endif %}
+    </div>
     <h1>Benutzerverwaltung</h1>
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -56,5 +64,7 @@
         <label>Passwort: <input type="password" name="password" required></label>
         <button type="submit">Hinzufügen</button>
     </form>
+
+    <button onclick="alert('Funktion zum Anzeigen der Statistiken wird hier implementiert')">Statistiken anzeigen</button>
 </body>
 </html>
