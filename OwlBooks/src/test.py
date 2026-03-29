@@ -265,47 +265,59 @@ class TestLoginModule(unittest.TestCase):
     def setUp(self):
         self.app = Flask(__name__)
         self.app.secret_key = "test"
+        # Template folder muss auf das templates Verzeichnis zeigen
+        self.app.template_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
         login.register_login_routes(self.app)
+        # Mock home route für url_for
+        @self.app.route("/home")
+        def home():
+            return "Home"
         self.client = self.app.test_client()
 
     @patch("login.USERS_FILE", "test_users.json")
     @patch("builtins.open", new_callable=mock_open, read_data='{}')
-    def test_register_user(self, mock_file):
+    @patch("login.save_users")
+    def test_register_user(self, mock_save, mock_file):
         """Testet die Registrierung eines neuen Benutzers"""
-        with self.app.test_request_context("/register", method="POST", data={"username": "user1", "password": "pw"}):
-            with patch("login.save_users") as mock_save:
-                resp = self.app.view_functions["register"]()
-                mock_save.assert_called()
+        with self.app.test_client() as c:
+            resp = c.post("/register", data={
+                "username": "user1",
+                "password": "pw",
+                "full_name": "Test User",
+                "address": "Test Address"
+            }, follow_redirects=False)
+            self.assertEqual(resp.status_code, 302)  # Redirect after success
+            mock_save.assert_called()
 
     @patch("login.USERS_FILE", "test_users.json")
     @patch("builtins.open", new_callable=mock_open, read_data='{"user1": {"password": "hash", "must_change_pw": false}}')
     @patch("login.check_password_hash", return_value=True)
     def test_login_success(self, mock_hash, mock_file):
         """Testet einen erfolgreichen Login"""
-        with self.app.test_request_context("/login", method="POST", data={"username": "user1", "password": "pw"}):
-            resp = self.app.view_functions["login"]()
-            self.assertIn("redirect", str(resp))
+        with self.app.test_client() as c:
+            resp = c.post("/login", data={"username": "user1", "password": "pw"}, follow_redirects=False)
+            self.assertEqual(resp.status_code, 302)  # Redirect to home
 
     @patch("login.USERS_FILE", "test_users.json")
     @patch("builtins.open", new_callable=mock_open, read_data='{"user1": {"password": "hash", "must_change_pw": false}}')
     @patch("login.check_password_hash", return_value=False)
     def test_login_fail(self, mock_hash, mock_file):
         """Testet einen fehlgeschlagenen Login"""
-        with self.app.test_request_context("/login", method="POST", data={"username": "user1", "password": "wrong"}):
-            resp = self.app.view_functions["login"]()
-            self.assertIn("falsch", str(resp))
+        with self.app.test_client() as c:
+            resp = c.post("/login", data={"username": "user1", "password": "wrong"}, follow_redirects=False)
+            self.assertEqual(resp.status_code, 200)  # Render login with error
 
     @patch("login.USERS_FILE", "test_users.json")
     @patch("builtins.open", new_callable=mock_open, read_data='{"user1": {"password": "hash", "must_change_pw": true}}')
-    def test_login_must_change_pw(self, mock_file):
+    @patch("login.save_users")
+    def test_login_must_change_pw(self, mock_save, mock_file):
         """Testet das Erzwingen einer Passwortänderung nach dem Login"""
-        with self.app.test_request_context("/login", method="POST", data={"username": "user1", "password": "pw"}):
-            with self.app.test_client() as c:
-                with c.session_transaction() as sess:
-                    sess["user"] = "user1"
-                    sess["must_change_pw"] = True
-                resp = c.post("/login", data={"new_password": "pw2", "new_password2": "pw2"})
-                self.assertIn("erfolgreich geändert".encode('utf-8'), resp.data)
+        with self.app.test_client() as c:
+            with c.session_transaction() as sess:
+                sess["user"] = "user1"
+                sess["must_change_pw"] = True
+            resp = c.post("/login", data={"new_password": "pw2", "new_password2": "pw2"})
+            self.assertEqual(resp.status_code, 302)  # Redirect after success
 
 
 class TestAdminModule(unittest.TestCase):

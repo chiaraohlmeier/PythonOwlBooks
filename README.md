@@ -145,19 +145,24 @@ OwlBooks/
 │   ├── statistik.json        # Statistik-Daten
 │   └── test.py               # Unit Tests
 ├── templates/
-│   ├── index.html            # Startseite (Meine Ausleihen, Empfehlungen, Buchbestand)
-│   ├── login.html            # Login-Seite
-│   ├── register.html         # Registrierungs-Seite
-│   ├── profile.html          # Benutzer-Profil
-│   ├── history.html          # Ausleih-Historie
-│   ├── admin.html            # Admin-Dashboard
-│   ├── admin_books.html      # Admin-Bücher-Verwaltung
-│   ├── admin_borrowings.html # Admin-Ausleihe-Verwaltung
-│   └── admin_statistics.html # Admin-Statistiken
+│   ├── index.html                 # Startseite (Meine Ausleihen, Empfehlungen, Buchbestand)
+│   ├── login.html                 # Login-Seite
+│   ├── register.html              # Registrierungs-Seite
+│   ├── profile.html               # Benutzer-Profil
+│   ├── history.html               # Ausleih-Historie
+│   ├── admin.html                 # Admin-Dashboard
+│   ├── admin_books.html           # Admin-Bücher-Verwaltung
+│   ├── admin_books_edit.html      # Admin-Bücher-Bearbeitung
+│   ├── admin_borrowings.html      # Admin-Ausleihe-Verwaltung
+│   ├── admin_statistics.html      # Admin-Statistiken
+│   ├── admin_statistics_books.html # Statistiken zu Büchern
+│   └── admin_statistics_genres.html # Statistiken zu Genres
 ├── static/
-│   ├── Icons/               # Icons für UI
+│   ├── Icons/                      # Icons (Passwort-Sichtbarkeit Toggle)
+│   │   ├── eye-password-hide.svg
+│   │   └── eye-password-show.svg
 │   └── js/
-│       └── password.js      # Passwort-Sichtbarkeit Toggle
+│       └── password.js             # Passwort-Sichtbarkeit Toggle
 └── README.md
 ```
 
@@ -272,7 +277,7 @@ cd OwlBooks
 python src/test.py
 ```
 
-**Aktuelle Test-Ergebnisse:** 22/25 Tests bestanden (88%)
+**Aktuelle Test-Ergebnisse:** 25/25 Tests bestanden (100%)
 
 ## Bekannte Limitations & TODOs
 - Keine E-Mail-Benachrichtigungen für Mahnungen
