@@ -4,26 +4,57 @@
     <meta charset="UTF-8">
     <title>Benutzerverwaltung (Admin)</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 30px; }
-        .topbar { display:flex; justify-content:flex-end; gap:12px; margin-bottom: 12px; }
-        .topbar a { color:#005fa3; text-decoration:none; font-weight:600; }
-        table { border-collapse: collapse; width: 100%; margin-bottom: 2em; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        th { background: #f0f0f0; }
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 30px; background: #f5f5f5; color: #333; }
+        .topbar { display:flex; justify-content:flex-end; gap:12px; margin-bottom: 20px; padding: 10px 0; border-bottom: 1px solid #ddd; }
+        .topbar a { color: #005fa3; text-decoration:none; font-weight:600; }
+        .topbar div { color: #666; }
+        h1 { color: #005fa3; margin-bottom: 20px; }
+        h2 { color: #333; margin-top: 30px; margin-bottom: 15px; }
+        
+        .card { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center; }
+        .stat-card h3 { margin: 0 0 10px 0; color: #005fa3; font-size: 1em; }
+        .stat-value { font-size: 2em; font-weight: bold; color: #333; }
+        
+        .success { color: green; background: #e8f5e9; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
+        .error { color: #c00; background: #ffebee; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
+        
+        table { border-collapse: collapse; width: 100%; margin-bottom: 2em; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        th, td { border: none; padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #005fa3; color: white; font-weight: 600; }
+        tr:hover { background: #f5f5f5; }
+        tr:last-child td { border-bottom: none; }
+        
         .actions { white-space: nowrap; }
         form.inline { display: inline; }
-        .success { color: green; }
-        .error { color: #c00; }
+        
+        button, input[type="submit"] { background: #005fa3; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em; }
+        button:hover, input[type="submit"]:hover { background: #004477; }
+        button.danger { background: #f44336; }
+        button.danger:hover { background: #d32f2f; }
+        button.secondary { background: #4CAF50; }
+        button.secondary:hover { background: #388E3C; }
+        
+        input[type="text"], input[type="password"], select { padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin-right: 10px; }
+        label { margin-right: 15px; }
+        
+        .btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
     </style>
 </head>
 <body>
     <div class="topbar">
         {% if session.user %}
             <div>Angemeldet als {{ session.user }}</div>
+            <a href="{{ url_for('admin') }}">Benutzerverwaltung</a>
+            <a href="{{ url_for('admin_books') }}">Buchverwaltung</a>
+            <a href="{{ url_for('admin_borrowings') }}">Ausleihen</a>
+            <a href="{{ url_for('admin_statistics') }}">Statistiken</a>
             <a href="{{ url_for('logout') }}">Abmelden</a>
         {% endif %}
     </div>
-    <h1>Benutzerverwaltung</h1>
+    <h1>📊 Benutzerverwaltung</h1>
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
@@ -32,39 +63,71 @@
       {% endif %}
     {% endwith %}
 
-    <h2>Benutzerliste</h2>
+    <!-- Statistiken -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>👥 Benutzer</h3>
+            <div class="stat-value">{{ userlist|length }}</div>
+        </div>
+    </div>
+
+    <!-- Reset Button -->
+    <div class="card">
+        <h2>⚠️ Alles zurücksetzen</h2>
+        <p>Dies setzt alle Mahngebühren UND alle Ausleihen für ALLE Benutzer zurück.</p>
+        <form method="post" action="{{ url_for('admin_reset_all_fines') }}">
+            <button type="submit" class="danger" onclick="return confirm('WARNUNG: Dies setzt alle Mahngebühren UND alle Ausleihen für ALLE Benutzer zurück! Fortfahren?')">
+                ⚠ ALLE Mahngebühren UND Ausleihen zurücksetzen
+            </button>
+        </form>
+    </div>
+
+    <h2>📋 Benutzerliste</h2>
     <table>
         <tr>
             <th>Benutzername</th>
+            <th>Vollständiger Name</th>
+            <th>Adresse</th>
+            <th>Mahngebühren (€)</th>
+            <th>Ausleihen</th>
             <th>Aktionen</th>
         </tr>
         {% for username in userlist %}
         <tr>
             <td>{{ username }}</td>
+            <td>{{ users[username].get('full_name', '-') }}</td>
+            <td>{{ users[username].get('address', '-') }}</td>
+            <td>{{ "%.2f"|format(users[username].get('outstanding_fines', 0.0)) }}</td>
+            <td>{{ active_borrowings_per_user.get(username, 0) }}</td>
             <td class="actions">
                 {% if username != admin %}
-                <form class="inline" method="post" action="{{ url_for('admin_delete', username=username) }}">
-                    <button type="submit" onclick="return confirm('Benutzer wirklich löschen?')">Löschen</button>
-                </form>
-                <form class="inline" method="post" action="{{ url_for('admin_reset', username=username) }}">
-                    <button type="submit">Passwort zurücksetzen</button>
-                </form>
+                <div class="btn-row">
+                    <form class="inline" method="post" action="{{ url_for('admin_delete', username=username) }}">
+                        <button type="submit" class="danger" onclick="return confirm('Benutzer wirklich löschen?')">🗑️ Löschen</button>
+                    </form>
+                    <form class="inline" method="post" action="{{ url_for('admin_reset', username=username) }}">
+                        <button type="submit">🔑 PW reset</button>
+                    </form>
+                    <form class="inline" method="post" action="{{ url_for('admin_reset_user_fines', username=username) }}">
+                        <button type="submit" class="secondary" onclick="return confirm('WARNUNG: Dies setzt Mahngebühren UND alle Ausleihen für diesen Benutzer zurück! Fortfahren?')">↩️ Alles zurücksetzen</button>
+                    </form>
+                </div>
                 {% endif %}
                 {% if users[username].must_change_pw or users[username]['must_change_pw'] %}
-                    <span style="color: #c00;">(Passwort muss geändert werden)</span>
+                    <span style="color: #f44336; font-weight: bold;">⚠️ PW muss geändert werden</span>
                 {% endif %}
             </td>
         </tr>
         {% endfor %}
     </table>
 
-    <h2>Neuen Benutzer anlegen</h2>
-    <form method="post" action="{{ url_for('admin_add') }}">
-        <label>Benutzername: <input type="text" name="username" required></label>
-        <label>Passwort: <input type="password" name="password" required></label>
-        <button type="submit">Hinzufügen</button>
-    </form>
-
-    <button onclick="alert('Funktion zum Anzeigen der Statistiken wird hier implementiert')">Statistiken anzeigen</button>
+    <h2>➕ Neuen Benutzer anlegen</h2>
+    <div class="card">
+        <form method="post" action="{{ url_for('admin_add') }}" class="btn-row">
+            <label>Benutzername: <input type="text" name="username" required></label>
+            <label>Passwort: <input type="password" name="password" required></label>
+            <button type="submit">➕ Hinzufügen</button>
+        </form>
+    </div>
 </body>
 </html>

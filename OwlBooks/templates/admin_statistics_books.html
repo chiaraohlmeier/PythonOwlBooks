@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Bücher-Statistiken (Admin)</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; }
+        .topbar { display:flex; justify-content:flex-end; gap:12px; margin-bottom: 12px; }
+        .topbar a { color:#005fa3; text-decoration:none; font-weight:600; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 2em; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background: #f0f0f0; }
+        .success { color: green; }
+        .error { color: #c00; }
+        .back-link { display: inline-block; margin-bottom: 1em; color: #005fa3; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        {% if session.user %}
+            <div>Angemeldet als {{ session.user }}</div>
+            <a href="{{ url_for('admin') }}">Benutzerverwaltung</a>
+            <a href="{{ url_for('admin_books') }}">Buchverwaltung</a>
+            <a href="{{ url_for('admin_borrowings') }}">Ausleihen</a>
+            <a href="{{ url_for('admin_statistics') }}">Statistiken</a>
+            <a href="{{ url_for('logout') }}">Abmelden</a>
+        {% endif %}
+    </div>
+    <a href="{{ url_for('admin_statistics') }}" class="back-link">← Zurück zu Statistiken</a>
+    <h1>Bücher - Detaillierte Statistiken</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <p class="{{ category }}">{{ message }}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <h2>Top 50 Bücher</h2>
+    <table>
+        <tr>
+            <th>Buch</th>
+            <th>Anzahl Ausleihen</th>
+        </tr>
+        {% for book, count in top_books %}
+        <tr>
+            <td>{{ book }}</td>
+            <td>{{ count }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    {% if bottom_books %}
+    <h2>Bottom 50 Bücher</h2>
+    <table>
+        <tr>
+            <th>Buch</th>
+            <th>Anzahl Ausleihen</th>
+        </tr>
+        {% for book, count in bottom_books %}
+        <tr>
+            <td>{{ book }}</td>
+            <td>{{ count }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+</body>
+</html>

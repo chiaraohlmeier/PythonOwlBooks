@@ -1,9 +1,24 @@
-{
-    "user": {
-        "ausgeliehenesBuch": "",
-        "genre": "",
-        "ausleihdatum": "",
-        "rueckgabedatum": "",
-        "ausstehenderBetrag": ""
+[
+    {
+        "id": "1",
+        "username": "Test",
+        "book_id": "1",
+        "book_title": "Behind the Screens",
+        "borrow_date": "2026-03-29T17:33:13.957008",
+        "return_date": "2026-03-28T17:33:13.957008",
+        "returned": true,
+        "fine": 2.0,
+        "actual_return_date": "2026-03-29T17:33:43.223837"
+    },
+    {
+        "id": "2",
+        "username": "Test",
+        "book_id": "1",
+        "book_title": "Behind the Screens",
+        "borrow_date": "2026-03-29T17:34:16.564188",
+        "return_date": "2026-03-28T17:34:16.564188",
+        "returned": true,
+        "fine": 2.0,
+        "actual_return_date": "2026-03-29T17:34:17.886911"
     }
-}
+]

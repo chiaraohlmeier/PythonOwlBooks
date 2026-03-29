@@ -2,6 +2,7 @@ from flask import render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import json
+from datetime import datetime
 
 USERS_FILE = os.path.join(os.path.dirname(__file__), "users.json")
 ADMIN_USER = "admin"
@@ -17,6 +18,16 @@ def load_users():
 def save_users(users):
     with open(USERS_FILE, "w", encoding="utf-8") as f:
         json.dump(users, f, indent=4, ensure_ascii=False)
+
+def get_next_month_first():
+    now = datetime.now()
+    if now.month == 12:
+        next_month = 1
+        next_year = now.year + 1
+    else:
+        next_month = now.month + 1
+        next_year = now.year
+    return datetime(next_year, next_month, 1)
 
 def register_login_routes(app):
     from functools import wraps
@@ -48,7 +59,7 @@ def register_login_routes(app):
                     save_users(users)
                     session.pop("must_change_pw", None)
                     flash("Passwort erfolgreich geändert.", "success")
-                    return redirect(url_for("main"))
+                    return redirect(url_for("home"))
             return render_template("login.html", error=error)
         # Normales Login
         if request.method == "POST":
@@ -68,7 +79,7 @@ def register_login_routes(app):
                 elif check_password_hash(users[user]["password"], pw):
                     session["user"] = user
                     session.pop("must_change_pw", None)
-                    return redirect(url_for("main")) #####
+                    return redirect(url_for("home"))
                 else:
                     error = "Benutzername oder Passwort falsch!"
             else:
@@ -82,14 +93,28 @@ def register_login_routes(app):
             users = load_users()
             username = request.form["username"].strip()
             password = request.form["password"]
-            if not username or not password:
-                error = "Bitte Benutzername und Passwort angeben."
+            full_name = request.form.get("full_name", "").strip()
+            address = request.form.get("address", "").strip()
+            monthly_fee_str = request.form.get("monthly_fee", "0")
+            
+            try:
+                monthly_fee = float(monthly_fee_str)
+            except (ValueError, TypeError):
+                monthly_fee = 0.0
+            
+            if not username or not password or not full_name or not address:
+                error = "Bitte alle Felder ausfüllen."
             elif username in users or username == ADMIN_USER:
                 error = "Benutzer existiert bereits."
             else:
                 users[username] = {
                     "password": generate_password_hash(password),
-                    "must_change_pw": False
+                    "must_change_pw": False,
+                    "full_name": full_name,
+                    "address": address,
+                    "monthly_fee": monthly_fee,
+                    "outstanding_fines": 0.0,
+                    "fines_reset_date": get_next_month_first().isoformat()
                 }
                 save_users(users)
                 flash("Benutzer erfolgreich angelegt. Bitte einloggen.", "success")

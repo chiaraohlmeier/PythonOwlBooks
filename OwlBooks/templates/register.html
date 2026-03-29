@@ -45,7 +45,7 @@
             height: 22px;
             vertical-align: middle;
         }
-        input[type="text"], input[type="submit"] {
+        input[type="text"], input[type="number"], textarea, input[type="submit"] {
             width: 100%;
             box-sizing: border-box;
             padding: 0.6em;
@@ -73,8 +73,17 @@
     <div class="register-container">
         <h2>Registrieren</h2>
         <form method="post" onsubmit="return checkPasswords();">
-            <label>Benutzername:
+            <label>Benutzername (Anmeldename):
                 <input name="username" type="text" required>
+            </label>
+            <label>Vollständiger Name:
+                <input name="full_name" type="text" required>
+            </label>
+            <label>Adresse:
+                <textarea name="address" rows="3" required></textarea>
+            </label>
+            <label>Monatsgebühr (€):
+                <input name="monthly_fee" type="number" step="0.01" min="0" required>
             </label>
             <label>Passwort:
                 <div class="password-wrapper">

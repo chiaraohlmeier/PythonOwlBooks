@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Persönliche Informationen</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background: #f9f9f9;
+        }
+        .topbar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .topbar a {
+            color: #005fa3;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #005fa3;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #005fa3;
+            margin-bottom: 15px;
+            border-left: 4px solid #005fa3;
+            padding-left: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input[readonly] {
+            background-color: #f5f5f5;
+            color: #666;
+            cursor: not-allowed;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        .charges-display {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #ff6b6b;
+        }
+        .charge-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .charge-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .charge-row.total {
+            font-weight: bold;
+            font-size: 18px;
+            color: #ff6b6b;
+            padding-top: 10px;
+            border-top: 2px solid #ff6b6b;
+        }
+        .charge-label {
+            color: #333;
+        }
+        .charge-amount {
+            font-weight: bold;
+        }
+        button {
+            background: #005fa3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #004477;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #005fa3;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .success { color: green; }
+        .error { color: #c00; }
+        .warning {
+            background: #fff3cd;
+            padding: 10px;
+            border-left: 4px solid #ffc107;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        #finesAmount {
+            color: #333;
+        }
+        #finesAmount.hasDebts {
+            color: #ff6b6b;
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        {% if session.user %}
+            <div>Angemeldet als {{ session.user }}</div>
+            <a href="{{ url_for('home') }}">Zurück zur Startseite</a>
+            <a href="{{ url_for('logout') }}">Abmelden</a>
+        {% endif %}
+    </div>
+
+    <div class="container">
+        <a href="{{ url_for('home') }}" class="back-link">← Zurück zur Startseite</a>
+        
+        <h1>Persönliche Informationen</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <p class="{{ category }}">{{ message }}</p>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="post">
+            <div class="section">
+                <div class="section-title">Persönliche Daten</div>
+                <label for="full_name">Vollständiger Name:</label>
+                <input type="text" id="full_name" name="full_name" value="{{ full_name }}" required>
+                
+                <label for="address">Adresse:</label>
+                <textarea id="address" name="address" required>{{ address }}</textarea>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Gebühren</div>
+                <label for="monthly_fee">Monatsgebühr (€):</label>
+                <input type="number" id="monthly_fee" name="monthly_fee" value="{{ monthly_fee }}" step="0.01" readonly>
+            </div>
+
+            <button type="submit">Informationen aktualisieren</button>
+        </form>
+
+        <div class="section">
+            <div class="section-title">Gebührenübersicht</div>
+            {% if total_fines > 0 %}
+            <div class="warning">
+                <strong>Achtung:</strong> Sie haben Mahngebühren ausstehend!
+            </div>
+            {% endif %}
+            
+            <div class="charges-display">
+                <div class="charge-row">
+                    <span class="charge-label">Monatsgebühr:</span>
+                    <span class="charge-amount">{{ "%.2f"|format(monthly_fee) }} €</span>
+                </div>
+                <div class="charge-row">
+                    <span class="charge-label">Mahngebühren:</span>
+                    <span class="charge-amount" id="finesAmount">{{ "%.2f"|format(total_fines) }} €</span>
+                </div>
+                <div class="charge-row total">
+                    <span class="charge-label">Gesamtbetrag (monatliche Abbuchung):</span>
+                    <span class="charge-amount">{{ "%.2f"|format(total_charges) }} €</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Highlight fines if present
+        const finesAmount = document.getElementById('finesAmount');
+        const finesValue = parseFloat('{{ total_fines }}');
+        if (finesValue > 0) {
+            finesAmount.classList.add('hasDebts');
+        }
+    </script>
+</body>
+</html>

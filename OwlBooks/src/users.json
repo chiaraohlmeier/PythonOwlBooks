@@ -1,6 +1,11 @@
 {
     "Test": {
-        "password": "scrypt:32768:8:1$sTIJHVhhglTwxnHq$bfc4e574c10bba00e2e0760286d7e029bd01fd6bd32de7525f410eac481b4c043dd79869da0b292b9bddf344e7b80a8c4429e11ddf47b31d202137fed00d7b41",
-        "must_change_pw": false
+        "password": "scrypt:32768:8:1$oubKF8qFVMfWj1dZ$6a0cfc4b80fc6827776d34f7ed959e2b5bdde59ad0c3a4e70b0c0162debe46f0cd832ccf304601b0e52e1f3130e007802a354623f2ae18e90fa588f12f3f4e8e",
+        "must_change_pw": false,
+        "full_name": "Test User",
+        "address": "Beispielstr. 123, 12345 Musterstadt",
+        "monthly_fee": 5.0,
+        "outstanding_fines": 4.0,
+        "fines_reset_date": "2026-04-01T00:00:00"
     }
 }

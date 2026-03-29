@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Buch bearbeiten (Admin)</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 30px; background: #f5f5f5; color: #333; }
+        .topbar { display:flex; justify-content:flex-end; gap:12px; margin-bottom: 20px; padding: 10px 0; border-bottom: 1px solid #ddd; }
+        .topbar a { color: #005fa3; text-decoration:none; font-weight:600; }
+        .topbar div { color: #666; }
+        h1 { color: #005fa3; margin-bottom: 20px; }
+        
+        .card { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 600px; }
+        
+        .success { color: green; background: #e8f5e9; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
+        .error { color: #c00; background: #ffebee; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
+        
+        .back-link { display: inline-block; margin-bottom: 20px; color: #005fa3; text-decoration: none; font-weight: 600; }
+        .back-link:hover { text-decoration: underline; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #555; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        
+        button, input[type="submit"] { background: #005fa3; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; }
+        button:hover, input[type="submit"]:hover { background: #004477; }
+        button.secondary { background: #4CAF50; }
+        button.secondary:hover { background: #388E3C; }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        {% if session.user %}
+            <div>Angemeldet als {{ session.user }}</div>
+            <a href="{{ url_for('admin') }}">Benutzerverwaltung</a>
+            <a href="{{ url_for('admin_books') }}">Buchverwaltung</a>
+            <a href="{{ url_for('admin_borrowings') }}">Ausleihen</a>
+            <a href="{{ url_for('admin_statistics') }}">Statistiken</a>
+            <a href="{{ url_for('logout') }}">Abmelden</a>
+        {% endif %}
+    </div>
+    <a href="{{ url_for('admin_books') }}" class="back-link">← Zurück zur Buchverwaltung</a>
+    <h1>✏️ Buch bearbeiten</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <p class="{{ category }}">{{ message }}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <form method="post">
+            <div class="form-group">
+                <label>Titel</label>
+                <input type="text" name="title" value="{{ book.title }}" required>
+            </div>
+            <div class="form-group">
+                <label>Autor</label>
+                <input type="text" name="author" value="{{ book.author }}" required>
+            </div>
+            <div class="form-group">
+                <label>Genre</label>
+                <select name="genre" required>
+                    {% for g in genres %}
+                    <option value="{{ g }}" {% if g == book.genre %}selected{% endif %}>{{ g }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Anzahl Exemplare</label>
+                <input type="number" name="quantity" value="{{ book.total }}" min="{{ book.total - book.available }}" required>
+                <small style="color: #666;">Verfügbar: {{ book.available }} von {{ book.total }}</small>
+            </div>
+            <button type="submit" class="secondary">💾 Aktualisieren</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Statistiken (Admin)</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; }
+        .topbar { display:flex; justify-content:flex-end; gap:12px; margin-bottom: 12px; }
+        .topbar a { color:#005fa3; text-decoration:none; font-weight:600; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 2em; }
+        .stat-card { border: 1px solid #ccc; padding: 20px; border-radius: 8px; background: #f9f9f9; }
+        .stat-card h3 { margin-top: 0; color: #005fa3; }
+        .stat-value { font-size: 2em; font-weight: bold; color: #333; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 2em; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background: #f0f0f0; }
+        .success { color: green; }
+        .error { color: #c00; }
+        .highlight { background: #e3f2fd; }
+        .warning { background: #fff3e0; }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        {% if session.user %}
+            <div>Angemeldet als {{ session.user }}</div>
+            <a href="{{ url_for('admin') }}">Benutzerverwaltung</a>
+            <a href="{{ url_for('admin_books') }}">Buchverwaltung</a>
+            <a href="{{ url_for('admin_borrowings') }}">Ausleihen</a>
+            <a href="{{ url_for('admin_statistics') }}">Statistiken</a>
+            <a href="{{ url_for('logout') }}">Abmelden</a>
+        {% endif %}
+    </div>
+    <h1>Bibliotheksstatistiken</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <p class="{{ category }}">{{ message }}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <h2>📊 Übersicht</h2>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>📚 Gesamt Bücher</h3>
+            <div class="stat-value">{{ stats.total_books }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>👥 Registrierte Benutzer</h3>
+            <div class="stat-value">{{ stats.total_users }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>📖 Aktuell ausgeliehen</h3>
+            <div class="stat-value">{{ stats.total_borrowed }}</div>
+        </div>
+        <div class="stat-card warning">
+            <h3>⚠️ Überfällige Bücher</h3>
+            <div class="stat-value">{{ stats.total_overdue }}</div>
+        </div>
+    </div>
+
+    <h2>📈 Rückgabe-Statistiken</h2>
+    <div class="stats-grid">
+        <div class="stat-card highlight">
+            <h3>✅ Pünktliche Rückgaben</h3>
+            <div class="stat-value">{{ stats.on_time_returns }}</div>
+            {% if stats.total_returns > 0 %}
+            <small>{{ "%.1f"|format((stats.on_time_returns / stats.total_returns * 100) if stats.total_returns > 0 else 0) }}% der Gesamten</small>
+            {% endif %}
+        </div>
+        <div class="stat-card warning">
+            <h3>⏰ Verspätete Rückgaben</h3>
+            <div class="stat-value">{{ stats.late_returns }}</div>
+            {% if stats.total_returns > 0 %}
+            <small>{{ "%.1f"|format((stats.late_returns / stats.total_returns * 100) if stats.total_returns > 0 else 0) }}% der Gesamten</small>
+            {% endif %}
+        </div>
+        <div class="stat-card">
+            <h3>📅 Durchschn. Ausleihdauer</h3>
+            <div class="stat-value">{{ stats.avg_duration }} Tage</div>
+            <small>Von zurückgegebenen Büchern</small>
+        </div>
+    </div>
+
+    <h2>💰 Finanz-Statistiken</h2>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>💶 Offene Mahngebühren</h3>
+            <div class="stat-value">{{ "%.2f"|format(stats.total_fines) }} €</div>
+            <small>Noch ausstehend</small>
+        </div>
+        <div class="stat-card highlight">
+            <h3>💵 Eingesammelte Mahngebühren</h3>
+            <div class="stat-value">{{ "%.2f"|format(stats.total_fines_collected) }} €</div>
+            <small>Gesamt aus Historie</small>
+        </div>
+    </div>
+
+    <h2>🏆 Beliebteste Genres (nach Ausleihen)</h2>
+    <table>
+        <tr>
+            <th>Rang</th>
+            <th>Genre</th>
+            <th>Anzahl Ausleihen</th>
+        </tr>
+        {% for genre, count in stats.popular_genres %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ genre }}</td>
+            <td>{{ count }}</td>
+        </tr>
+        {% endfor %}
+        {% if not stats.popular_genres %}
+        <tr><td colspan="3">Keine Daten verfügbar</td></tr>
+        {% endif %}
+    </table>
+    <p><a href="{{ url_for('admin_statistics_genres') }}">Mehr anzeigen →</a></p>
+
+    <h2>📖 Beliebteste Bücher</h2>
+    <table>
+        <tr>
+            <th>Rang</th>
+            <th>Buch</th>
+            <th>Anzahl Ausleihen</th>
+        </tr>
+        {% for book, count in stats.top_books %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ book }}</td>
+            <td>{{ count }}</td>
+        </tr>
+        {% endfor %}
+        {% if not stats.top_books %}
+        <tr><td colspan="3">Keine Daten verfügbar</td></tr>
+        {% endif %}
+    </table>
+    <p><a href="{{ url_for('admin_statistics_books') }}">Mehr anzeigen →</a></p>
+
+    <h2>👤 Aktivste Benutzer</h2>
+    <table>
+        <tr>
+            <th>Rang</th>
+            <th>Benutzer</th>
+            <th>Anzahl Ausleihen</th>
+        </tr>
+        {% for user, count in stats.top_users %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ user }}</td>
+            <td>{{ count }}</td>
+        </tr>
+        {% endfor %}
+        {% if not stats.top_users %}
+        <tr><td colspan="3">Keine Daten verfügbar</td></tr>
+        {% endif %}
+    </table>
+
+    <h2>⚠️ Benutzer mit den meisten Mahnungen</h2>
+    <table>
+        <tr>
+            <th>Rang</th>
+            <th>Benutzer</th>
+            <th>Anzahl verspäteter Rückgaben</th>
+        </tr>
+        {% for user, count in stats.top_fined_users %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ user }}</td>
+            <td>{{ count }}</td>
+        </tr>
+        {% endfor %}
+        {% if not stats.top_fined_users %}
+        <tr><td colspan="3">Keine Daten verfügbar</td></tr>
+        {% endif %}
+    </table>
+
+</body>
+</html>
