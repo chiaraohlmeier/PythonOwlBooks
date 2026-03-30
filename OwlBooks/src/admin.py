@@ -1,17 +1,13 @@
-# ...imports and constants...
-
-# ...existing code...
-
-# Add this route after the other @app.route definitions (e.g. after admin_required is defined)
 import json
 import os
 import sys
+from functools import wraps
 from urllib.parse import unquote
 from flask import render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash
 from datetime import datetime
 
-# Füge src zum Pfad hinzu, damit Importe funktionieren
+# Import mit Fallback für direkte Ausführung
 if os.path.dirname(__file__) not in sys.path:
     sys.path.insert(0, os.path.dirname(__file__))
 try:
@@ -75,7 +71,6 @@ def save_borrowings(borrowings):
 
 def register_admin_routes(app):
     def admin_required(f):
-        from functools import wraps
         @wraps(f)
         def decorated_function(*args, **kwargs):
             if "user" not in session or session["user"] != ADMIN_USER:
@@ -121,12 +116,12 @@ def register_admin_routes(app):
 
     @app.route('/admin/books', methods=['GET'])
     @admin_required
-    def admin_books():
+    def admin_books():  # pyright: ignore[reportUnusedFunction]
         books = load_books()
         borrowings = load_borrowings()
         genres = load_genres()
 
-        # Gruppiere Bücher nach title, author, genre (neuere Struktur mit total/available)
+        # Gruppiere Bücher nach Titel, Autor, Genre
         grouped_books = {}
         for book in books:
             key = (book['title'], book['author'], book['genre'])
@@ -140,14 +135,13 @@ def register_admin_routes(app):
                     'ids': [book['id']]
                 }
             else:
-                # Add to existing group
                 grouped_books[key]['total'] += book.get('total', 1)
                 grouped_books[key]['available'] += book.get('available', 0)
                 grouped_books[key]['ids'].append(book['id'])
 
         grouped_books_list = list(grouped_books.values())
 
-        # --- Pagination logic ---
+        # Paginierung
         PER_PAGE = 10
         try:
             page = int(request.args.get('page', 1))
@@ -186,15 +180,19 @@ def register_admin_routes(app):
             flash('Titel, Autor, Genre und gültige Anzahl müssen angegeben werden.', 'error')
             return redirect(url_for('admin_books'))
         
-        # Check if book with same title/author/genre exists
+        # Prüfe ob Buch mit gleichem Titel/Autor/Genre existiert
         existing = None
         for b in books:
             if b['title'] == title and b['author'] == author and b['genre'] == genre:
                 existing = b
                 break
+        
         if existing:
+            # Buch existiert bereits - Menge erhöhen
             existing['total'] = existing.get('total', 1) + quantity
             existing['available'] = existing.get('available', 0) + quantity
+            save_books(books)
+            flash(f"{quantity} Exemplar(e) von '{title}' hinzugefügt (Gesamt: {existing['total']}).", 'success')
         else:
             # Neue ID bestimmen (maximal vorhandene ID + 1)
             max_id = 0
@@ -214,73 +212,8 @@ def register_admin_routes(app):
             books.append(new_book)
             save_books(books)
             flash(f"{quantity} Exemplar(e) von '{title}' hinzugefügt.", 'success')
-            return redirect(url_for('admin_books'))
-        # Finde das Buch eindeutig
-        book = None
-        for b in books:
-            if b['title'] == title and b['author'] == author and b['genre'] == genre:
-                book = b
-                break
-        if not book:
-            flash('Buch nicht gefunden.', 'error')
-            return redirect(url_for('admin_books'))
-        total = book.get('total', 1)
-        available = book.get('available', 0)
-        if request.method == 'POST':
-            new_title = request.form.get('title', '').strip()
-            new_author = request.form.get('author', '').strip()
-            new_genre = request.form.get('genre', '').strip()
-            new_quantity_str = request.form.get('quantity', str(total))
-            try:
-                new_quantity = int(new_quantity_str)
-            except ValueError:
-                new_quantity = total
-            if new_quantity < (total - available):
-                flash('Anzahl kann nicht kleiner sein als die Anzahl ausgeliehener Exemplare.', 'error')
-                return render_template('admin_books_edit.html', book={'title': new_title, 'author': new_author, 'genre': new_genre, 'total': total, 'available': available}, genres=genres)
-            # Prüfe, ob die neue Kombination schon existiert (außer das aktuelle Buch)
-            for b in books:
-                if b is not book and b['title'] == new_title and b['author'] == new_author and b['genre'] == new_genre:
-                    flash('Ein Buch mit diesen Daten existiert bereits.', 'error')
-                    return render_template('admin_books_edit.html', book={'title': new_title, 'author': new_author, 'genre': new_genre, 'total': total, 'available': available}, genres=genres)
-            # Aktualisiere Buchdaten
-            book['title'] = new_title
-            book['author'] = new_author
-            book['genre'] = new_genre
-            book['total'] = new_quantity
-            # Passe available an, falls reduziert wird
-            if available > new_quantity:
-                book['available'] = new_quantity - (total - available)
-            else:
-                book['available'] = available + (new_quantity - total)
-            save_books(books)
-            flash(f"Buch '{new_title}' aktualisiert.", 'success')
-            return redirect(url_for('admin_books'))
-        return render_template('admin_books_edit.html', book={'title': title, 'author': author, 'genre': genre, 'total': total, 'available': available}, genres=genres)
         
-        # Überfälligkeit prüfen
-        return_date = datetime.fromisoformat(borrowing['return_date'])
-        today = datetime.now()
-        
-        fine = 0.0
-        if today > return_date:
-            overdue_days = (today - return_date).days
-            fine = overdue_days * 2.0
-        
-        borrowing['returned'] = True
-        borrowing['fine'] = fine
-        borrowing['actual_return_date'] = today.isoformat()
-        
-        # Increment available count
-        book = next((b for b in books if b['id'] == borrowing['book_id']), None)
-        if book:
-            book['available'] = book.get('available', 0) + 1
-        
-        save_borrowings(borrowings)
-        save_books(books)
-        
-        flash(f"Buch '{borrowing['book_title']}' als zurückgegeben markiert.", 'success')
-        return redirect(url_for('admin'))
+        return redirect(url_for('admin_books'))
 
     @app.route('/admin/borrowing/delete/<borrowing_id>', methods=['POST'])
     @admin_required
@@ -293,7 +226,7 @@ def register_admin_routes(app):
             flash('Ausleihe nicht gefunden.', 'error')
             return redirect(url_for('admin'))
         
-        # Increment available count
+        # Verfügbare Anzahl erhöhen
         book = next((b for b in books if b['id'] == borrowing['book_id']), None)
         if book:
             book['available'] = book.get('available', 0) + 1
@@ -463,11 +396,11 @@ def register_admin_routes(app):
     def admin_books_edit(title, author, genre):
         books = load_books()
         genres = load_genres()
-        # URL decode
+        # URL-Decodierung
         title = unquote(title)
         author = unquote(author)
         genre = unquote(genre)
-        # Finde das Buch eindeutig
+        # Buch suchen
         book = None
         for b in books:
             if b['title'] == title and b['author'] == author and b['genre'] == genre:
@@ -495,12 +428,12 @@ def register_admin_routes(app):
                 if b is not book and b['title'] == new_title and b['author'] == new_author and b['genre'] == new_genre:
                     flash('Ein Buch mit diesen Daten existiert bereits.', 'error')
                     return render_template('admin_books_edit.html', book={'title': new_title, 'author': new_author, 'genre': new_genre, 'total': total, 'available': available}, genres=genres)
-            # Aktualisiere Buchdaten
+            # Buchdaten aktualisieren
             book['title'] = new_title
             book['author'] = new_author
             book['genre'] = new_genre
             book['total'] = new_quantity
-            # Passe available an, falls reduziert wird
+            # Verfügbare Anzahl anpassen
             if available > new_quantity:
                 book['available'] = new_quantity - (total - available)
             else:
@@ -513,6 +446,7 @@ def register_admin_routes(app):
     @app.route('/admin/books/delete/<title>/<author>/<genre>', methods=['POST'])
     @admin_required
     def admin_books_delete(title, author, genre):
+        # URL-Decodierung
         title = unquote(title)
         author = unquote(author)
         genre = unquote(genre)
@@ -532,7 +466,7 @@ def register_admin_routes(app):
         borrowings = load_borrowings()
         users = load_users()
         books = load_books()
-        # Optional: Sort borrowings by returned status and date
+        # Nach Rückgabestatus und Datum sortieren
         borrowings_sorted = sorted(borrowings, key=lambda b: (b.get('returned', False), b.get('borrow_date', '')), reverse=True)
         return render_template('admin_borrowings.html', borrowings=borrowings_sorted, users=users, books=books)
 
@@ -625,7 +559,7 @@ def create_statistics():
     
     avg_duration = round(total_duration_days / duration_count, 1) if duration_count > 0 else 0
     
-    # Anzahl Mahnungen pro Nutzer (basierend auf tardy returns)
+    # Mahnungen pro Nutzer
     fines_per_user = {}
     for b in borrowings:
         if b.get('returned', False) and b.get('fine', 0) > 0:
