@@ -98,36 +98,79 @@
         .error { 
             color: #c00; 
         }
+        /* Snackbar Styles */
+        .snackbar {
+            visibility: hidden;
+            min-width: 300px;
+            max-width: 90vw;
+            margin-left: -150px;
+            background-color: #323232;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 9999;
+            left: 50%;
+            bottom: 40px;
+            font-size: 1.1em;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+        .snackbar.show {
+            visibility: visible;
+            opacity: 1;
+        }
+        .snackbar.success { background: #388e3c; }
+        .snackbar.error { background: #c62828; }
     </style>
 </head>
 <body>
     <div class="login-container">
         <!--Block zum anzeigen der flashed messages-->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <p class="{{ category }}">{{ message }}</p>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                                <div id="snackbar" class="snackbar {{ messages[0][0] }}">{{ messages[0][1] }}</div>
+                                <script>
+                                    window.addEventListener('DOMContentLoaded', function() {
+                                        var snackbar = document.getElementById('snackbar');
+                                        if (snackbar) {
+                                            snackbar.classList.add('show');
+                                            setTimeout(function() {
+                                                snackbar.classList.remove('show');
+                                            }, 30000);
+                                        }
+                                    });
+                                </script>
+                        {% endif %}
+                {% endwith %}
         {% if session.must_change_pw %}
             <h2>Neues Passwort setzen</h2>
             <form method="post">
                 <label>Neues Passwort:
                     <div class="password-wrapper">
                         <input id="new_password1" name="new_password" type="password" required>
-                        <button type="button" class="toggle-password" onclick="togglePassword('new_password1', 'eyeShowNP1', 'eyeHideNP1')" tabindex="-1" aria-label="Passwort anzeigen/ausblenden">
-                            <img id="eyeShowNP1" src="{{ url_for('static', filename='Icons/eye-password-show.svg') }}" alt="Passwort anzeigen">
-                            <img id="eyeHideNP1" src="{{ url_for('static', filename='Icons/eye-password-hide.svg') }}" alt="Passwort verbergen" style="display:none;">
+                        <button type="button" class="toggle-password" data-input="new_password1" data-eye-show="eyeShowNP1" data-eye-hide="eyeHideNP1" tabindex="-1" aria-label="Passwort anzeigen/ausblenden">
+                                                        <span id="eyeShowNP1" style="display:inline;vertical-align:middle;">
+                                                            <svg fill="none" height="22" viewBox="0 0 24 24" width="22" xmlns="http://www.w3.org/2000/svg"><g stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m1 12s4-8 11-8 11 8 11 8"/><path d="m1 12s4 8 11 8 11-8 11-8"/><circle cx="12" cy="12" r="3"/></g></svg>
+                                                        </span>
+                                                        <span id="eyeHideNP1" style="display:none;vertical-align:middle;">
+                                                            <svg fill="none" height="22" viewBox="0 0 24 24" width="22" xmlns="http://www.w3.org/2000/svg"><g stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m2 2 20 20"/><path d="m6.71277 6.7226c-3.04798 2.07267-4.71277 5.2774-4.71277 5.2774s3.63636 7 10 7c2.0503 0 3.8174-.7266 5.2711-1.7116m-6.2711-12.23018c.3254-.03809.6588-.05822 1-.05822 6.3636 0 10 7 10 7s-.6918 1.3317-2 2.8335"/><path d="m14 14.2362c-.5308.475-1.2316.7639-2 .7639-1.6569 0-3-1.3431-3-3 0-.8237.33193-1.5698.86932-2.11192"/></g></svg>
+                                                        </span>
                         </button>
                     </div>
                 </label>
                 <label>Neues Passwort wiederholen:
                     <div class="password-wrapper">
                         <input id="new_password2" name="new_password2" type="password" required>
-                        <button type="button" class="toggle-password" onclick="togglePassword('new_password2', 'eyeShowNP2', 'eyeHideNP2')" tabindex="-1" aria-label="Passwort anzeigen/ausblenden">
-                            <img id="eyeShowNP2" src="{{ url_for('static', filename='Icons/eye-password-show.svg') }}" alt="Passwort anzeigen">
-                            <img id="eyeHideNP2" src="{{ url_for('static', filename='Icons/eye-password-hide.svg') }}" alt="Passwort verbergen" style="display:none;">
+                        <button type="button" class="toggle-password" data-input="new_password2" data-eye-show="eyeShowNP2" data-eye-hide="eyeHideNP2" tabindex="-1" aria-label="Passwort anzeigen/ausblenden">
+                                                        <span id="eyeShowNP2" style="display:inline;vertical-align:middle;">
+                                                            <svg fill="none" height="22" viewBox="0 0 24 24" width="22" xmlns="http://www.w3.org/2000/svg"><g stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m1 12s4-8 11-8 11 8 11 8"/><path d="m1 12s4 8 11 8 11-8 11-8"/><circle cx="12" cy="12" r="3"/></g></svg>
+                                                        </span>
+                                                        <span id="eyeHideNP2" style="display:none;vertical-align:middle;">
+                                                            <svg fill="none" height="22" viewBox="0 0 24 24" width="22" xmlns="http://www.w3.org/2000/svg"><g stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m2 2 20 20"/><path d="m6.71277 6.7226c-3.04798 2.07267-4.71277 5.2774-4.71277 5.2774s3.63636 7 10 7c2.0503 0 3.8174-.7266 5.2711-1.7116m-6.2711-12.23018c.3254-.03809.6588-.05822 1-.05822 6.3636 0 10 7 10 7s-.6918 1.3317-2 2.8335"/><path d="m14 14.2362c-.5308.475-1.2316.7639-2 .7639-1.6569 0-3-1.3431-3-3 0-.8237.33193-1.5698.86932-2.11192"/></g></svg>
+                                                        </span>
                         </button>
                     </div>
                 </label>
@@ -143,9 +186,13 @@
                 <label>Passwort:
                     <div class="password-wrapper">
                         <input id="password1" name="password" type="password" required>
-                        <button type="button" class="toggle-password" onclick="togglePassword('password1', 'eyeShow1', 'eyeHide1')" tabindex="-1" aria-label="Passwort anzeigen/ausblenden">
-                            <img id="eyeShow1" src="{{ url_for('static', filename='Icons/eye-password-show.svg') }}" alt="Passwort anzeigen">
-                            <img id="eyeHide1" src="{{ url_for('static', filename='Icons/eye-password-hide.svg') }}" alt="Passwort verbergen" style="display:none;">
+                        <button type="button" class="toggle-password" data-input="password1" data-eye-show="eyeShow1" data-eye-hide="eyeHide1" tabindex="-1" aria-label="Passwort anzeigen/ausblenden">
+                                                        <span id="eyeShow1" style="display:inline;vertical-align:middle;">
+                                                            <svg fill="none" height="22" viewBox="0 0 24 24" width="22" xmlns="http://www.w3.org/2000/svg"><g stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m1 12s4-8 11-8 11 8 11 8"/><path d="m1 12s4 8 11 8 11-8 11-8"/><circle cx="12" cy="12" r="3"/></g></svg>
+                                                        </span>
+                                                        <span id="eyeHide1" style="display:none;vertical-align:middle;">
+                                                            <svg fill="none" height="22" viewBox="0 0 24 24" width="22" xmlns="http://www.w3.org/2000/svg"><g stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m2 2 20 20"/><path d="m6.71277 6.7226c-3.04798 2.07267-4.71277 5.2774-4.71277 5.2774s3.63636 7 10 7c2.0503 0 3.8174-.7266 5.2711-1.7116m-6.2711-12.23018c.3254-.03809.6588-.05822 1-.05822 6.3636 0 10 7 10 7s-.6918 1.3317-2 2.8335"/><path d="m14 14.2362c-.5308.475-1.2316.7639-2 .7639-1.6569 0-3-1.3431-3-3 0-.8237.33193-1.5698.86932-2.11192"/></g></svg>
+                                                        </span>
                         </button>
                     </div>
                 </label>
@@ -158,5 +205,30 @@
         {% endif %}
     </div>
     <script src="{{ url_for('static', filename='js/password.js') }}"></script>
+</body>
+<script>
+// Robuste Toggle-Logik für Passwort-Anzeige
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.toggle-password').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var input = document.getElementById(btn.getAttribute('data-input'));
+            var eyeShow = document.getElementById(btn.getAttribute('data-eye-show'));
+            var eyeHide = document.getElementById(btn.getAttribute('data-eye-hide'));
+            if (input && eyeShow && eyeHide) {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    eyeShow.style.display = 'none';
+                    eyeHide.style.display = 'inline';
+                } else {
+                    input.type = 'password';
+                    eyeShow.style.display = 'inline';
+                    eyeHide.style.display = 'none';
+                }
+            }
+        });
+    });
+});
+</script>
 </body>
 </html>

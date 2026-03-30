@@ -1,11 +1,5 @@
 ## OwlBooks - Die Bibliothek der weisen Eule
 
-**Projekt für:** Software-Engineering Kurs  
-**Version:** 1.0  
-**Status:** Abgeschlossen
-
----
-
 ### Inhaltsverzeichnis
 1. [Projektbeschreibung](#projektbeschreibung)
 2. [Funktionaler Umfang](#funktionaler-umfang)
@@ -124,7 +118,7 @@ python src/test.py
 ### Standard-Test-Benutzer
 - **Benutzername:** `Test`
 - **Passwort:** `Test`
-- **Zugriff:** Normale Benutzer-Funktionen (Bücher ausleihen, eigene Ausleihen verwalten)
+- **Zugriff:** Normale Benutzer-Funktionen (Bücher ausleihen, eigene Ausleihen verwalten, Ausleihe bis "gestern" zum Testen der Mahnungen)
 
 ### Neue Benutzer
 Neue Benutzer können sich über die Registrierungs-Seite selbst anmelden.
@@ -282,4 +276,4 @@ python src/test.py
 ## Bekannte Limitations & TODOs
 - Keine E-Mail-Benachrichtigungen für Mahnungen
 - Keine Bild-Uploads für Bücher
-- Keine Export-Funktion für Berichte
+- Keine Export-Funktionen der Statistiken

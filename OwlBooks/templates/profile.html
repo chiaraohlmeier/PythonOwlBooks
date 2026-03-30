@@ -125,6 +125,32 @@
         }
         .success { color: green; }
         .error { color: #c00; }
+        /* Snackbar Styles */
+        .snackbar {
+            visibility: hidden;
+            min-width: 300px;
+            max-width: 90vw;
+            margin-left: -150px;
+            background-color: #323232;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 9999;
+            left: 50%;
+            bottom: 40px;
+            font-size: 1.1em;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+        .snackbar.show {
+            visibility: visible;
+            opacity: 1;
+        }
+        .snackbar.success { background: #388e3c; }
+        .snackbar.error { background: #c62828; }
         .warning {
             background: #fff3cd;
             padding: 10px;
@@ -155,12 +181,21 @@
         <h1>Persönliche Informationen</h1>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <p class="{{ category }}">{{ message }}</p>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
+                    {% if messages %}
+                        <div id="snackbar" class="snackbar {{ messages[0][0] }}">{{ messages[0][1] }}</div>
+                        <script>
+                            window.addEventListener('DOMContentLoaded', function() {
+                                var snackbar = document.getElementById('snackbar');
+                                if (snackbar) {
+                                    snackbar.classList.add('show');
+                                    setTimeout(function() {
+                                        snackbar.classList.remove('show');
+                                    }, 30000);
+                                }
+                            });
+                        </script>
+                    {% endif %}
+                {% endwith %}
 
         <form method="post">
             <div class="section">

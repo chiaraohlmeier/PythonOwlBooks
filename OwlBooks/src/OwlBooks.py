@@ -1,12 +1,14 @@
 import sys
 import os
 import json
+import traceback
+from datetime import datetime
+from flask import Flask, render_template, request, session, redirect, url_for, flash
 
 # Füge src zum Pfad hinzu, damit Importe funktionieren
 if os.path.dirname(__file__) not in sys.path:
     sys.path.insert(0, os.path.dirname(__file__))
 
-from flask import Flask, render_template, request, session, redirect, url_for, flash
 
 # Try to import with package prefix, fall back to local imports
 try:
@@ -41,7 +43,6 @@ register_admin_routes(app)
 @app.login_required
 def home():
     """Startseite nach Login mit optionaler Suche."""
-    from datetime import datetime
     try:
         books = load_books()
         if not isinstance(books, list):
@@ -111,7 +112,6 @@ def home():
 @app.login_required
 def borrow(book_id):
     """Buch ausleihen."""
-    import traceback
     try:
         days = request.form.get('days', '14')
         try:
@@ -126,7 +126,6 @@ def borrow(book_id):
             flash(message, 'error')
     except Exception as e:
         flash(f"Fehler beim Ausleihen: {str(e)}", 'error')
-        import sys
         traceback.print_exc(file=sys.stdout)
     return redirect(url_for('home'))
 
@@ -160,7 +159,8 @@ def history():
                          history=history_sorted,
                          returned_count=returned_count,
                          active_count=active_count,
-                         total_fines=total_fines)
+                         total_fines=total_fines,
+                         now=datetime.now().isoformat())
 
 @app.route('/profile', methods=['GET', 'POST'])
 @app.login_required
@@ -192,7 +192,6 @@ def profile():
     monthly_fee = user_data.get('monthly_fee', 0.0)
     
     # Check and reset outstanding fines if past reset date
-    from datetime import datetime
     reset_date_str = user_data.get('fines_reset_date')
     if reset_date_str:
         try:
@@ -203,7 +202,7 @@ def profile():
                 save_users(users)
         except ValueError:
             pass
-    
+
     total_fines = user_data.get('outstanding_fines', 0.0)
     total_charges = monthly_fee + total_fines
     
